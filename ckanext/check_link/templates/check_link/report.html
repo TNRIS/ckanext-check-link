@@ -32,21 +32,23 @@
 {% block check_link_help_text %}
     {% trans %}
     <p>
-        Brief overview of the current state of the links within the portal.
+        Overview of the unavailable links within the hub.
     </p>
 
     <p>
         Possible states are:
 
         <dl>
+            {#
             <dt>Unknown</dt>
             <dd>Link has not been checked yet</dd>
 
             <dt>Available</dt>
             <dd>Link is available</dd>
+            #}
 
             <dt>Moved</dt>
-            <dd>Link contains a redirect to the differens URL</dd>
+            <dd>Link contains a redirect to the different URL</dd>
 
             <dt>Missing</dt>
             <dd>Link points to the page that does not exist</dd>

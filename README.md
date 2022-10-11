@@ -40,6 +40,10 @@ Compatibility with core CKAN versions:
 
 1. Add `check_link` to the `ckan.plugins` setting in your CKAN config file.
 
+1. Run migration to set up database table called 'check_link_report'
+   ```
+   ckan -c /etc/ckan/default/ckan.ini db upgrade -p check_link
+   ```
 
 ## Config settings
 

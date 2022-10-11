@@ -8,8 +8,12 @@ from ckanext.toolbelt.decorators import Collector
 
 from .. import schema
 
+from datetime import datetime
+import logging
+
 action, get_actions = Collector("check_link").split()
 
+log = logging.getLogger(__name__)
 
 @action
 @validate(schema.report_save)
@@ -25,11 +29,30 @@ def report_save(context, data_dict):
         sess.add(report)
     else:
         report = sess.query(Report).filter(Report.id == existing["id"]).one()
-        # this line update `created_at` value. Consider removing old report and
+        # this line update `last_checked` value. Consider removing old report and
         # creating a brand new one instead, as it would be nice to have ID
         # regenerated as well
         report.touch()
+
+        #log.warning( data_dict )
+        if data_dict["state"] == "available":
+            # link is currently available
+            report.last_available = datetime.utcnow()
+        elif report.state == 'available' and data_dict["state"] != "available":
+            # state changed between last check and current check, so we set
+            # last_available to previous check time. 
+            # NOTE: last_checked would be better named last_checked
+            report.last_available = report.last_checked
+        else:
+            # link was unavailable during last check, and continues to be
+            pass
+
+        if data_dict["state"] != report.state:
+            report.last_status_change = datetime.utcnow()
+            #log.warning( 'STATUS CHANGE from %s to %s', report.state, data_dict["state"] )
+
         for k, v in data_dict.items():
+            #log.warning( 'data_dict: %s = %s', k, v )
             if k == "id":
                 continue
             setattr(report, k, v)
@@ -95,13 +118,37 @@ def report_search(context, data_dict):
         q = q.filter(Report.state.in_(data_dict["include_state"]))
 
     count = q.count()
-    q = q.order_by(Report.created_at.desc())
+    q = q.order_by(Report.last_status_change.desc())
     q = q.limit(data_dict["limit"]).offset(data_dict["offset"])
 
     return {
         "count": count,
         "results": [
             r.dictize(dict(context, include_resource=True, include_package=True))
+            for r in q
+        ],
+    }
+
+
+@action
+@validate(schema.url_search)
+def url_search(context, data_dict):
+    #tk.check_access("check_link_url_search", context, data_dict)
+    q = context["session"].query(Report)
+
+    url = data_dict["url"]
+    count = 0
+
+    q = q.filter(Report.url == url )
+
+    count = q.count()
+    q = q.order_by(Report.last_status_change.desc())
+    q = q.limit(1)
+
+    return {
+        "count": count,
+        "results": [
+            r.dictize(dict(context, include_resource=False, include_package=False))
             for r in q
         ],
     }

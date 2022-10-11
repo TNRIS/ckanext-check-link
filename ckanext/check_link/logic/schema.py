@@ -118,5 +118,14 @@ def report_search(
 
 
 @validator_args
+def url_search(
+    not_missing, unicode_safe
+):
+    return {
+        "url": [not_missing, unicode_safe]
+    }
+
+
+@validator_args
 def report_delete(unicode_safe, not_missing):
     return report_show()

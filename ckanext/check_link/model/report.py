@@ -30,7 +30,9 @@ class Report(Base):
     url = Column(UnicodeText, nullable=False)
     state = Column(String(20), nullable=False)
 
-    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    last_checked = Column(DateTime, nullable=False, default=datetime.utcnow)
+    last_status_change = Column(DateTime, nullable=False, default=datetime.utcnow)
+    last_available = Column(DateTime, nullable=False, default=datetime.utcnow)
 
     resource_id = Column(
         UnicodeText, ForeignKey(model.Resource.id), nullable=True, unique=True
@@ -51,7 +53,7 @@ class Report(Base):
     UniqueConstraint(url, resource_id)
 
     def touch(self):
-        self.created_at = datetime.utcnow()
+        self.last_checked = datetime.utcnow()
 
     def dictize(self, context: dict[str, Any]) -> dict[str, Any]:
         result = table_dictize(self, context, package_id=self.package_id)

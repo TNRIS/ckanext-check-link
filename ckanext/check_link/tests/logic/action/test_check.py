@@ -63,7 +63,7 @@ class TestUrl:
         call_action("check_link_url_check", url=url, save=True)
         report = call_action("check_link_report_show", url=url)
         assert report == {
-            "created_at": ANY,
+            "last_checked": ANY,
             "details": {
                 "code": 200,
                 "explanation": "Link is available",

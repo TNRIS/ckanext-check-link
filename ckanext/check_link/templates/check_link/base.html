@@ -1,11 +1,11 @@
 {% extends "page.html" %}
 
-{% block subtitle %}{{ _('Link availability') }}{% endblock %}
+{% block subtitle %}{{ _('Broken Resource Links') }}{% endblock %}
 
 
 {% block breadcrumb_content %}
     <li>
-        {{ _("Link availability") }}
+        {{ _("Broken Resource Links") }}
     </li>
     {% block check_link_breadcrumb %}
     {% endblock check_link_breadcrumb %}
@@ -17,7 +17,7 @@
     <div class="module module-narrow module-shallow">
         <h2 class="module-heading">
             <i class="fa fa-info-circle"></i>
-            {{ _('Link availability') }}
+            {{ _('Broken Resource Links') }}
         </h2>
         <div class="module-content">
             {% block admin_form_help %}

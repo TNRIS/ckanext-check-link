@@ -23,7 +23,7 @@ def upgrade():
         sa.Column("url", sa.UnicodeText),
         sa.Column("state", sa.String(20), nullable=False),
         sa.Column(
-            "created_at",
+            "last_checked",
             sa.DateTime,
             nullable=False,
             server_default=sa.func.current_timestamp(),
@@ -34,6 +34,18 @@ def upgrade():
             sa.ForeignKey("resource.id"),
             nullable=True,
             unique=True,
+        ),
+        sa.Column(
+            "last_status_change",
+            sa.DateTime,
+            nullable=False,
+            server_default=sa.func.current_timestamp(),
+        ),
+        sa.Column(
+            "last_available",
+            sa.DateTime,
+            nullable=False,
+            server_default=sa.func.current_timestamp(),
         ),
         sa.Column("details", JSONB, nullable=False),
         sa.Index("url_idx", "url"),

@@ -68,6 +68,12 @@ def report_search(context, data_dict):
 
 
 @auth
+def url_search(context, data_dict):
+    #return authz.is_authorized("sysadmin", context, data_dict)
+    return True;
+
+
+@auth
 def report_delete(context, data_dict):
     return authz.is_authorized("sysadmin", context, data_dict)
 

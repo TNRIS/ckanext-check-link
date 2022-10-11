@@ -87,7 +87,7 @@ def check_packages(
                 {
                     "fq": "id:({})".format(" OR ".join(p.id for p in buff)),
                     "save": True,
-                    "clear_available": True,
+                    "clear_available": False,
                     "include_drafts": include_draft,
                     "include_private": include_private,
                     "skip_invalid": True,
@@ -146,7 +146,7 @@ def check_resources(ids: tuple[str, ...], delay: float, timeout: float):
                     context.copy(),
                     {
                         "save": True,
-                        "clear_available": True,
+                        "clear_available": False,
                         "id": res.id,
                         "link_patch": {"delay": delay, "timeout": timeout},
                     },

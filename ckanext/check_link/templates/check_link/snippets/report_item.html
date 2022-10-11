@@ -28,11 +28,31 @@ report
         <p class="h5">
             {{ _("Date of check:") }}
             <date>
-                {{ h.render_datetime(report.created_at, None, true) }}
+                {{ h.render_datetime(report.last_checked, None, true) }}
             </date>
-            [{{ h.time_ago_from_timestamp(report.created_at) }}]
+            [{{ h.time_ago_from_timestamp(report.last_checked) }}]
         </p>
     {% endblock checked_at %}
+
+    {% block last_status_change %}
+        <p class="h5">
+            {{ _("Date status last changed:") }}
+            <date>
+                {{ h.render_datetime(report.last_status_change, None, true) }}
+            </date>
+            [{{ h.time_ago_from_timestamp(report.last_status_change) }}]
+        </p>
+    {% endblock last_status_change %}
+
+    {% block last_available %}
+        <p class="h5">
+            {{ _("Date last available:") }}
+            <date>
+                {{ h.render_datetime(report.last_available, None, true) }}
+            </date>
+            [{{ h.time_ago_from_timestamp(report.last_available) }}]
+        </p>
+    {% endblock last_available %}
 
     {% block state %}
         <p class="h5">
