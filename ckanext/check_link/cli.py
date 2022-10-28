@@ -138,6 +138,9 @@ def check_resources(ids: tuple[str, ...], delay: float, timeout: float):
     stats = Counter()
     total = q.count()
     overview = "Not ready yet"
+    results = []
+    mail_dict = {}
+
     with click.progressbar(q, length=total) as bar:
         for res in bar:
             bar.label = f"Current: {res.id}. Overview({total} total): {overview}"
@@ -155,6 +158,8 @@ def check_resources(ids: tuple[str, ...], delay: float, timeout: float):
                 log.error("Cannot check %s: %s", res.id, e)
                 result = {"state": "exception"}
 
+            results.append( result )
+
             stats[result["state"]] += 1
             overview = (
                 ", ".join(
@@ -167,6 +172,8 @@ def check_resources(ids: tuple[str, ...], delay: float, timeout: float):
             bar.label = f"Current: {res.id}. Overview({total} total): {overview}"
 
     click.secho("Done", fg="green")
+
+    action = tk.get_action("check_link_email_report")({},{})
 
 
 @check_link.command()

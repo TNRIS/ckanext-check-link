@@ -1,0 +1,25 @@
+{% extends "emails/base.html" %}
+
+{% block header %}
+  {% snippet 'emails/snippets/header.html', site_url=site_url, site_title=site_title %}
+{% endblock %}
+
+{% block content %}
+  <h1><span style="font-family: Lora, Georgia, serif; font-size: 32px; font-weight: 700;">Broken Resource Link Report</span></h1>
+  
+  {# 
+      'message' is pre-escaped in ckanext-contact extension, so we can 
+      set autoescape to false and then add in line breaks.
+      Without using this method, the line breaks get escaped with the rest of the html.
+  #}
+  <p style="margin-top: 20px;">
+  {% autoescape false %}
+    {{ message | replace("\n", "<br/>") }}
+  {% endautoescape %}
+  </p>
+
+{% endblock %}
+
+{% block footer %}
+  {% snippet 'emails/snippets/footer.html', site_url=site_url, site_title=site_title %}
+{% endblock %}

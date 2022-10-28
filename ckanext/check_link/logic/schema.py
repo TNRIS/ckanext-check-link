@@ -125,6 +125,9 @@ def url_search(
         "url": [not_missing, unicode_safe]
     }
 
+@validator_args
+def email_report():
+    return report_show()
 
 @validator_args
 def report_delete(unicode_safe, not_missing):
