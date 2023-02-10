@@ -175,23 +175,35 @@ def check_resources(ids: tuple[str, ...], delay: float, timeout: float):
 
     action = tk.get_action("check_link_email_report")({},{})
 
-
 @check_link.command()
 @click.option("-o", "--orphans-only", is_flag=True, help="Only drop reports that point to an unexisting resource")
-def delete_reports(orphans_only: bool):
-    """Delete check-link reports.
+def purge_reports(orphans_only: bool):
+    """Purge check-link reports.
     """
     q = model.Session.query(Report)
+    # q = model.Session.query(model.Resource.id).filter_by(state="active")
+
     if orphans_only:
         q = q.outerjoin(model.Resource, Report.resource_id == model.Resource.id).filter(
             Report.resource_id.isnot(None),
             model.Resource.id.is_(None) | (model.Resource.state != "active")
         )
 
-    user = tk.get_action("get_site_user")({"ignore_auth": True}, {})
-    context = {"user": user["name"]}
+    if q.count() == 0:
+        if orphans_only:
+            log.info( 'No orphaned check_link resource records found.' )
+        else:
+            log.info( 'No check_link resource records found.' )
+    else:
+        if orphans_only:
+            log.info( '{} orphaned check_link resource records found.'.format( q.count() ) )
+        else:
+            log.info( '{} check_link resource records found.'.format( q.count() ) )
+        user = tk.get_action("get_site_user")({"ignore_auth": True}, {})
+        context = {"user": user["name"]}
 
-    action = tk.get_action("check_link_report_delete")
-    with click.progressbar(q, length=q.count()) as bar:
-        for report in bar:
-            action(context.copy(), {"id": report.id})
+        action = tk.get_action("check_link_report_delete")
+        with click.progressbar(q, length=q.count()) as bar:
+            for report in bar:
+                log.info( 'Deleting check_link record for resource {}'.format( report.resource_id ) )
+                action(context.copy(), {"id": report.id})

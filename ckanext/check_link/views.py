@@ -36,7 +36,7 @@ def report():
     except ValueError:
         page = 1
 
-    per_page = 10
+    per_page = 20
     reports = tk.get_action("check_link_report_search")(
         {},
         {

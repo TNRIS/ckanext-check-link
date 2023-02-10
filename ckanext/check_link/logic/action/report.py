@@ -186,23 +186,27 @@ def email_report(context, data_dict):
 
         # log.warning( r.dictize(dict(context, include_resource=False, include_package=False)) )
 
-        dataset = tk.get_action('package_show')(None, {'id': r.package_id })
+        try:
+            dataset = tk.get_action('package_show')(None, {'id': r.package_id })
 
-        broken_age = r.last_checked - r.last_available
+            broken_age = r.last_checked - r.last_available
 
-        body += "{name}\nBroken link: {url}\nState: {state}\nCode / Reason / Explanation: {code} / {reason} / {explanation}\nBroken for {broken_age}\nLast checked: {last_checked}\nLast Available: {last_available}\nDataset URL: {dataset_url}\n\n".format(
-            name = dataset["title"],
-            broken_age = "{days} days, {hours} hours".format( days=broken_age.days, hours=( broken_age.seconds // 3600 ) ),
-            url = r.url,
-            state = r.state,
-            last_checked = r.last_checked.strftime("%m/%d/%Y at %I:%M%p").lower(),
-            last_available = r.last_available.strftime("%m/%d/%Y at %I:%M%p").lower(),
-            # dataset_url = "{site_url}/dataset/{name}".format( site_url = tk.config.get('ckan.site_title'), name = dataset["name"] )
-            dataset_url = h.url_for('dataset.read', id=dataset["name"], _external=True ),
-            code = r.details["code"],
-            reason = r.details["reason"],
-            explanation = r.details["explanation"],
-         )
+            body += "{name}\nBroken link: {url}\nState: {state}\nCode / Reason / Explanation: {code} / {reason} / {explanation}\nBroken for {broken_age}\nLast checked: {last_checked}\nLast Available: {last_available}\nDataset URL: {dataset_url}\n\n".format(
+                name = dataset["title"],
+                broken_age = "{days} days, {hours} hours".format( days=broken_age.days, hours=( broken_age.seconds // 3600 ) ),
+                url = r.url,
+                state = r.state,
+                last_checked = r.last_checked.strftime("%m/%d/%Y at %I:%M%p").lower(),
+                last_available = r.last_available.strftime("%m/%d/%Y at %I:%M%p").lower(),
+                # dataset_url = "{site_url}/dataset/{name}".format( site_url = tk.config.get('ckan.site_title'), name = dataset["name"] )
+                dataset_url = h.url_for('dataset.read', id=dataset["name"], _external=True ),
+                code = r.details["code"],
+                reason = r.details["reason"],
+                explanation = r.details["explanation"],
+             )
+        except:
+            # skip record if we don't have permission to access it, for instance if it is in the trash
+            pass
 
 
     subject = '{site_title} | Broken Resource Link Report'.format( site_title = tk.config.get('ckan.site_title') )
