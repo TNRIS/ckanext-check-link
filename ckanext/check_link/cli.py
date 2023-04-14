@@ -120,26 +120,43 @@ def _take(seq: Iterable[T], size: int) -> list[T]:
 @click.option(
     "-t", "--timeout", default=10, help="Request timeout", type=click.FloatRange(0)
 )
+@click.option(
+    "-i", "--ignore-local-resources", is_flag=True, help="Do not check resources hosted locally"
+)
 @click.argument("ids", nargs=-1)
-def check_resources(ids: tuple[str, ...], delay: float, timeout: float):
+def check_resources(ids: tuple[str, ...], delay: float, timeout: float, ignore_local_resources: bool, ):
     """Check every resource on the portal.
 
     Scope can be narrowed via arbitary number of arguments, specifying
     resource's ID or name.
     """
+
+    site_url = tk.config.get('ckan.site_url')
+    #log.info( "site_url={site_url}".format( site_url=site_url ) )
+
     user = tk.get_action("get_site_user")({"ignore_auth": True}, {})
     context = {"user": user["name"]}
 
     check = tk.get_action("check_link_resource_check")
-    q = model.Session.query(model.Resource.id).filter_by(state="active")
+    q = model.Session.query(model.Resource.id,model.Resource.name,model.Resource.url).filter_by(state="active")
+
     if ids:
         q = q.filter(model.Resource.id.in_(ids))
+
+    if ignore_local_resources:
+        log.info( "--ignore_local_resources is set, so local resources will not be checked" )
+        #q = q.filter(model.Resource.url.notlike("{site_url}%".format(site_url=site_url)))
+        q = q.filter(model.Resource.url.like("http%"))
 
     stats = Counter()
     total = q.count()
     overview = "Not ready yet"
     results = []
     mail_dict = {}
+
+    log.info( 'RESOURCE URLS TO CHECK:')
+    for r in q:
+        log.info("{name} : {url}".format(name=r.name,url=r.url))
 
     with click.progressbar(q, length=total) as bar:
         for res in bar:
@@ -181,7 +198,6 @@ def purge_reports(orphans_only: bool):
     """Purge check-link reports.
     """
     q = model.Session.query(Report)
-    # q = model.Session.query(model.Resource.id).filter_by(state="active")
 
     if orphans_only:
         q = q.outerjoin(model.Resource, Report.resource_id == model.Resource.id).filter(

@@ -211,20 +211,26 @@ def email_report(context, data_dict):
 
     subject = '{site_title} | Broken Resource Link Report'.format( site_title = tk.config.get('ckan.site_title') )
 
-    mail_dict = {
-        'recipient_email': tk.config.get('email_to'),
-        'recipient_name': tk.config.get('ckan.site_title'),
-        'subject': subject,
-        'body': body,
-#        'body_html': render_template(
-#            f'check_link/emails/broken_link_report.html',
-#            subject = subject,
-#            message = 'This is an html test',
-#            site_title = tk.config.get('ckan.site_title'), 
-#            site_url = tk.url_for( 'home.index', _external=True )
-#        )
 
-    }
+    email_to = tk.config.get('ckanext.check_link.email_to')
+
+    if( email_to == None ):
+        raise Exception("ckanext.check_link.email_to is not set, so I can't e-mail this report")
+    else:
+        mail_dict = {
+            'recipient_email': email_to,
+            'recipient_name': tk.config.get('ckan.site_title'),
+            'subject': subject,
+            'body': body,
+    #        'body_html': render_template(
+    #            f'check_link/emails/broken_link_report.html',
+    #            subject = subject,
+    #            message = 'This is an html test',
+    #            site_title = tk.config.get('ckan.site_title'), 
+    #            site_url = tk.url_for( 'home.index', _external=True )
+    #        )
+
+        }
 
     try:
         mailer.mail_recipient(**mail_dict)
