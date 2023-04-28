@@ -170,6 +170,8 @@ def email_report(context, data_dict):
     count = q.count()
     q = q.order_by(Report.last_available.asc())
 
+    log.info( 'count={}'.format( count ) )
+
     #log.warning( 
     #    {
     #        "count": count,
@@ -187,7 +189,14 @@ def email_report(context, data_dict):
         # log.warning( r.dictize(dict(context, include_resource=False, include_package=False)) )
 
         try:
-            dataset = tk.get_action('package_show')(None, {'id': r.package_id })
+
+            if r.package_id:
+                log.info( 'resource' )
+                dataset = tk.get_action('package_show')(None, {'id': r.package_id })
+            else:
+                log.info( 'application' )
+                dataset = tk.get_action('package_show')(None, {'id': r.details['package_id'] })
+
 
             broken_age = r.last_checked - r.last_available
 
@@ -198,14 +207,15 @@ def email_report(context, data_dict):
                 state = r.state,
                 last_checked = r.last_checked.strftime("%m/%d/%Y at %I:%M%p").lower(),
                 last_available = r.last_available.strftime("%m/%d/%Y at %I:%M%p").lower(),
-                # dataset_url = "{site_url}/dataset/{name}".format( site_url = tk.config.get('ckan.site_title'), name = dataset["name"] )
-                dataset_url = h.url_for('dataset.read', id=dataset["name"], _external=True ),
+                dataset_url = h.url_for('{}.read'.format( dataset["type"] ), id=dataset["name"], _external=True ),
                 code = r.details["code"],
                 reason = r.details["reason"],
                 explanation = r.details["explanation"],
              )
-        except:
+        except Exception as e: 
+            print(e)
             # skip record if we don't have permission to access it, for instance if it is in the trash
+            log.info( 'Skipped record {}'.format( r.id ) )
             pass
 
 
@@ -236,9 +246,6 @@ def email_report(context, data_dict):
         mailer.mail_recipient(**mail_dict)
     except (mailer.MailerException, socket.error):
         pass
-
-
-
 
 @action
 @validate(schema.report_delete)

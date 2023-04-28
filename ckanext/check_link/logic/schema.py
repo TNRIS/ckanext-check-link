@@ -75,6 +75,10 @@ def user_check(not_missing, convert_user_name_or_id_to_id):
 def search_check(unicode_safe, default):
     return dict(base_search_check(), fq=[default("*:*"), unicode_safe])
 
+@validator_args
+def application_check(unicode_safe, default):
+    return dict(base_search_check(), fq=[default("*:*"), unicode_safe])
+
 
 @validator_args
 def report_save(

@@ -166,6 +166,51 @@ def _search_check(context, fq: str, data_dict: dict[str, Any]):
         "reports": reports,
     }
 
+@action
+@validate(schema.search_check)
+def application_check(context, data_dict):
+    tk.check_access("check_link_application_check", context, data_dict)
+
+    return _application_check(context, data_dict["fq"], data_dict)["reports"]
+
+
+def _application_check(context, fq: str, data_dict: dict[str, Any]):
+    params = {
+        "fq": fq,
+        "start": data_dict["start"],
+        "include_drafts": data_dict["include_drafts"],
+        # "include_deleted": data_dict["include_deleted"],
+        "include_private": data_dict["include_private"],
+    }
+
+    pairs = [
+        ({"package_id": pkg["id"]}, pkg["url"])
+        for pkg in islice(_iterate_search(context, params), data_dict["rows"])
+        if pkg["url"]
+    ]
+
+    if not pairs:
+        return {"reports": []}
+
+    patches, urls = zip(*pairs)
+
+    result = tk.get_action("check_link_url_check")(
+        context,
+        {
+            "url": urls,
+            "skip_invalid": data_dict["skip_invalid"],
+            "link_patch": data_dict["link_patch"],
+        },
+    )
+
+    reports = [dict(report, **patch) for patch, report in zip(patches, result)]
+    if data_dict["save"]:
+        _save_reports(context, reports, data_dict["clear_available"])
+
+    return {
+        "reports": reports,
+    }
+
 
 def _iterate_search(context, params: dict[str, Any]):
     params.setdefault("start", 0)

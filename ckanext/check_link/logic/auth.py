@@ -53,6 +53,11 @@ def search_check(context, data_dict):
 
 
 @auth
+def application_check(context, data_dict):
+    return authz.is_authorized("package_search", context, data_dict)
+
+
+@auth
 def report_save(context, data_dict):
     return authz.is_authorized("sysadmin", context, data_dict)
 
