@@ -136,10 +136,13 @@ def _take(seq: Iterable[T], size: int) -> list[T]:
 @click.option(
     "-t", "--timeout", default=10, help="Request timeout", type=click.FloatRange(0)
 )
+@click.option(
+    "-i", "--ignore-local-resources", is_flag=True, help="Do not check resources hosted locally"
+)
 @click.argument("ids", nargs=-1)
 def check_applications(
         include_draft: bool, include_private: bool, ids: tuple[str, ...], chunk: int,
-        delay: float, timeout: float
+        delay: float, timeout: float,  ignore_local_resources: bool,
 ):
     """Check every application link.
 
@@ -147,6 +150,8 @@ def check_applications(
     application's ID or name.
 
     """
+    site_url = tk.config.get('ckan.site_url')
+
     user = tk.get_action("get_site_user")({"ignore_auth": True}, {})
     context = {"user": user["name"]}
 
@@ -167,6 +172,15 @@ def check_applications(
 
     if ids:
         q = q.filter(model.Package.id.in_(ids) | model.Package.name.in_(ids))
+
+    # breakpoint()
+    if ignore_local_resources:
+        log.info( "--ignore_local_resources is set, so local resources will not be checked" )
+        # Ignore resources hosted on the same domain as the portal
+        q = q.filter(model.Package.url.notlike("{site_url}%".format(site_url=site_url)))
+        # Ignore resources that don't start with http
+        q = q.filter(~(model.Package.url.notlike("http%")))
+
 
     log.info( 'APPLICATIONS TO CHECK:')
     for result in q:
@@ -232,7 +246,6 @@ def check_resources(ids: tuple[str, ...], delay: float, timeout: float, ignore_l
     """
 
     site_url = tk.config.get('ckan.site_url')
-    #log.info( "site_url={site_url}".format( site_url=site_url ) )
 
     user = tk.get_action("get_site_user")({"ignore_auth": True}, {})
     context = {"user": user["name"]}
@@ -245,8 +258,12 @@ def check_resources(ids: tuple[str, ...], delay: float, timeout: float, ignore_l
 
     if ignore_local_resources:
         log.info( "--ignore_local_resources is set, so local resources will not be checked" )
-        #q = q.filter(model.Resource.url.notlike("{site_url}%".format(site_url=site_url)))
-        q = q.filter(model.Resource.url.like("http%"))
+        # Ignore resources hosted on the same domain as the portal
+        q = q.filter(model.Resource.url.notlike("{site_url}%".format(site_url=site_url)))
+        # Ignore resources that don't start with http
+        q = q.filter(~(model.Resource.url.notlike("http%")))
+
+    q = q.filter(model.Resource.url.notlike("http://_datastore_only_resource%"))
 
     stats = Counter()
     total = q.count()
@@ -255,7 +272,7 @@ def check_resources(ids: tuple[str, ...], delay: float, timeout: float, ignore_l
 
     log.info( 'RESOURCE URLS TO CHECK:')
     for r in q:
-        log.info("{name} : {url}".format(name=r.name,url=r.url))
+        log.info("{name} : {url}".format(name=r.name or 'Unknown',url=r.url or 'Unknown'))
 
     with click.progressbar(q, length=total) as bar:
         for res in bar:

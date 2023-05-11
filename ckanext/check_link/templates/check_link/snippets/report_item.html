@@ -8,14 +8,20 @@
                 title="{{ _("Copy URL") }}"
                 data-module="copy-into-buffer" data-module-copy-value="{{ report.url }}">
             <i class="fa fa-copy"></i>
-            {{ _("Copy URL") }}
+            {{ _("Copy Broken URL") }}
         </button>
     {% endblock copy %}
 
     {% block resource scoped %}
         <p class="h4">
+            {% if 'id' in res %}
             {{ _("Resource:") }}
             <a href="{{ h.url_for("resource.read", id=pkg.name, resource_id=res.id) }}">{{ res.name or _("Unknown") }}</a>
+            {% else %}
+            {{ _("Application:") }}
+            <a href="{{ h.url_for("dataset.read", id=report.details.package_id) }}">{{ h.get_package_title( report.details.package_id ) or _("Unknown") }}</a>
+
+            {% endif %}
         </p>
     {% endblock resource %}
 
@@ -58,8 +64,10 @@
 
     {% block package scoped %}
         <p class="h5">
+            {% if 'id' in res %}
             {{ _("Dataset:") }}
             <a href="{{ h.url_for(pkg.type ~ ".read", id=pkg.name) }}">{{ pkg.title }}</a>
+            {% endif %}
         </p>
     {% endblock package %}
 

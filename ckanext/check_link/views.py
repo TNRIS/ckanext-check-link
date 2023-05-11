@@ -42,7 +42,7 @@ def report():
         {
             "limit": per_page,
             "offset": per_page * page - per_page,
-            "attached_only": True,
+            "attached_only": False,
             "exclude_state": ["available"],
         },
     )
