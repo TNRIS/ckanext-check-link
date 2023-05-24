@@ -219,7 +219,7 @@ def email_report(context, data_dict):
             pass
 
 
-    subject = '{site_title} | Broken Resource Link Report'.format( site_title = tk.config.get('ckan.site_title') )
+    subject = '{site_title} | Broken Link Report'.format( site_title = tk.config.get('ckan.site_title') )
 
 
     email_to = tk.config.get('ckanext.check_link.email_to')
