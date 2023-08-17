@@ -5,6 +5,9 @@ from collections import Counter
 from itertools import islice
 from typing import Iterable, TypeVar
 
+from datetime import datetime
+from datetime import date
+
 import ckan.model as model
 import ckan.plugins.toolkit as tk
 import click
@@ -113,6 +116,70 @@ def _take(seq: Iterable[T], size: int) -> list[T]:
     return list(islice(seq, size))
 
 
+class Date(click.ParamType):
+    name = 'date'
+
+    def __init__(self, formats=None):
+        self.formats = formats or [
+            '%Y-%m-%dT%H:%M:%S',
+            '%Y-%m-%d %H:%M:%S',
+            '%Y-%m-%d'
+        ]
+
+    def get_metavar(self, param):
+        return '[{}]'.format('|'.join(self.formats))
+
+    def _try_to_convert_date(self, value, format):
+        try:
+            return datetime.strptime(value, format)
+        except ValueError:
+            return None
+
+    def convert(self, value, param, ctx):
+        for format in self.formats:
+            date = self._try_to_convert_date(value, format)
+            if date:
+                return date
+
+        self.fail(
+            'invalid date format: {}. (choose from {})'.format(
+                value, ', '.join(self.formats)))
+
+    def __repr__(self):
+        return 'Date'
+
+def _purge_stale_applications( older_than ):
+    """ When a URL is changed on an application, the check-link record for the old URL remains in the check_link_report table. 
+    This function is used to remove check-link records for application links that have not been checked since 'older_than'.
+    This function is called immediately after doing a check-applications with older_than set to the datetime when the check-applications process began.
+    It can also be invoked from the CLI with an arbitraty older_than value.
+
+    Args:
+        older_than (Date): string formatted as %Y-%m-%dT%H:%M:%S, %Y-%m-%d %H:%M:%S, or %Y-%m-%d
+    """
+
+    log.info( 'Purging application resource records that have not been checked since {}'.format( older_than ))
+
+    q = model.Session.query(Report).filter(
+        Report.resource_id.is_(None),
+        Report.last_checked < older_than
+    )
+
+    if q.count() == 0:
+        log.info( 'No stale resource records found.' )
+    else:
+        log.info( '{} stale check_link application resource records found.'.format( q.count() ) )
+
+        user = tk.get_action("get_site_user")({"ignore_auth": True}, {})
+        context = {"user": user["name"]}
+
+        action = tk.get_action("check_link_report_delete")
+
+        with click.progressbar(q, length=q.count()) as bar:
+            for report in bar:
+                log.info( 'Deleting check_link record for record {}'.format( report.id ) )
+                action(context.copy(), {"id": report.id})
+
 
 @check_link.command()
 @click.option(
@@ -150,6 +217,7 @@ def check_applications(
     application's ID or name.
 
     """
+    start_time = datetime.now()
     site_url = tk.config.get('ckan.site_url')
 
     user = tk.get_action("get_site_user")({"ignore_auth": True}, {})
@@ -173,7 +241,6 @@ def check_applications(
     if ids:
         q = q.filter(model.Package.id.in_(ids) | model.Package.name.in_(ids))
 
-    # breakpoint()
     if ignore_local_resources:
         log.info( "--ignore_local_resources is set, so local resources will not be checked" )
         # Ignore resources hosted on the same domain as the portal
@@ -222,6 +289,14 @@ def check_applications(
     # tk.get_action("check_link_email_report")({},{})
 
     click.secho("Done", fg="green")
+
+    _purge_stale_applications( start_time )
+
+
+@check_link.command()
+@click.argument('older_than', type=Date())
+def purge_stale_applications( older_than ):
+    _purge_stale_applications( older_than )
 
 def _take(seq: Iterable[T], size: int) -> list[T]:
     return list(islice(seq, size))
@@ -309,7 +384,7 @@ def check_resources(ids: tuple[str, ...], delay: float, timeout: float, ignore_l
     # tk.get_action("check_link_email_report")({},{})
 
 @check_link.command()
-@click.option("-o", "--orphans-only", is_flag=True, help="Only drop reports that point to an unexisting resource")
+@click.option("-o", "--orphans-only", is_flag=True, help="Only drop reports for resources that point to a nonexistent dataset")
 def purge_reports(orphans_only: bool):
     """Purge check-link reports.
     """
