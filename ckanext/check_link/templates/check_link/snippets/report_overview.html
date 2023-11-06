@@ -1,0 +1,34 @@
+{% trans %}
+<p>
+    Overview of the unavailable resource and application links within the hub.
+</p>
+
+<p>
+    Possible states are:
+
+    <dl>
+        {#
+        <dt>Unknown</dt>
+        <dd>Link has not been checked yet</dd>
+
+        <dt>Available</dt>
+        <dd>Link is available</dd>
+        #}
+
+        <dt>Moved</dt>
+        <dd>Link contains a redirect to a different URL</dd>
+
+        <dt>Missing</dt>
+        <dd>Link points to a page that does not exist</dd>
+
+        <dt>Protected</dt>
+        <dd>Link points to a page that requires authentication</dd>
+
+        <dt>Invalid</dt>
+        <dd>Link points to an existing location, but requests are rejected</dd>
+
+        <dt>Error</dt>
+        <dd>Link cannot be checked because it mailformed or points to an nonexistent location</dd>
+    </dl>
+</p>
+{% endtrans %}

@@ -168,43 +168,36 @@ def email_report(context, data_dict):
 
     q = q.filter(Report.state != 'available' )
     count = q.count()
-    q = q.order_by(Report.last_available.asc())
+    q = q.order_by(Report.last_available.desc())
 
     log.info( 'count={}'.format( count ) )
 
-    #log.warning( 
-    #    {
-    #        "count": count,
-    #        "results": [
-    #            r.dictize(dict(context, include_resource=False, include_package=False))
-    #            for r in q
-    #        ],
-    #    }
-    #)
-
-    body =  "{0} unavailable resource{1} found.\n\n".format(count, "s" if count != 1 else "" )
+    body = ''
+    skipped = 0
 
     for r in q:
 
-        # log.warning( r.dictize(dict(context, include_resource=False, include_package=False)) )
-
         try:
 
+            package_show = tk.get_action('package_show')
             if r.package_id:
                 log.info( 'resource' )
-                dataset = tk.get_action('package_show')(None, {'id': r.package_id })
+                pid =  r.package_id
             else:
                 log.info( 'application' )
-                dataset = tk.get_action('package_show')(None, {'id': r.details['package_id'] })
+                pid =  r.details['package_id']
+
+            dataset = package_show( context, {'id': pid} )
 
 
             broken_age = r.last_checked - r.last_available
 
-            body += "{name}\nBroken link: {url}\nState: {state}\nCode / Reason / Explanation: {code} / {reason} / {explanation}\nBroken for {broken_age}\nLast checked: {last_checked}\nLast Available: {last_available}\nDataset URL: {dataset_url}\n\n".format(
+            body += "<h2 style='margin-bottom: 0;'>{name}</h2>\nDataset State: {dataset_state}\nBroken link: {url}\nLink State: {link_state}\nCode / Reason / Explanation: {code} / {reason} / {explanation}\nBroken for {broken_age}\nLast checked: {last_checked}\nLast Available: {last_available}\nDataset URL: {dataset_url}\n\n".format(
                 name = dataset["title"],
                 broken_age = "{days} days, {hours} hours".format( days=broken_age.days, hours=( broken_age.seconds // 3600 ) ),
                 url = r.url,
-                state = r.state,
+                link_state = r.state,
+                dataset_state = "Private" if dataset["private"] else "Published",
                 last_checked = r.last_checked.strftime("%m/%d/%Y at %I:%M%p").lower(),
                 last_available = r.last_available.strftime("%m/%d/%Y at %I:%M%p").lower(),
                 dataset_url = h.url_for('{}.read'.format( dataset["type"] ), id=dataset["name"], _external=True ),
@@ -216,11 +209,14 @@ def email_report(context, data_dict):
             print(e)
             # skip record if we don't have permission to access it, for instance if it is in the trash
             log.info( 'Skipped record {}'.format( r.id ) )
+            skipped += 1
             pass
 
 
     subject = '{site_title} | Broken Link Report'.format( site_title = tk.config.get('ckan.site_title') )
-
+    body_prefix =  \
+        "<li>{0} unavailable resource{1} found.</li>".format(count, "s" if count != 1 else "" ) + \
+        "<li><a href='{url}/ckan-admin/broken-links'>This report is also available in the TWDH CKAN Admin</a>.</li>".format( url=tk.config.get('ckan.site_url')   )
 
     email_to = tk.config.get('ckanext.check_link.email_to')
 
@@ -232,13 +228,14 @@ def email_report(context, data_dict):
             'recipient_name': tk.config.get('ckan.site_title'),
             'subject': subject,
             'body': body,
-    #        'body_html': render_template(
-    #            f'check_link/emails/broken_link_report.html',
-    #            subject = subject,
-    #            message = 'This is an html test',
-    #            site_title = tk.config.get('ckan.site_title'), 
-    #            site_url = tk.url_for( 'home.index', _external=True )
-    #        )
+            'body_html': render_template(
+                f'check_link/emails/broken_link_report.html',
+                subject = subject,
+                prefix = body_prefix,
+                message = body,
+                site_title = tk.config.get('ckan.site_title'), 
+                site_url = tk.url_for( 'home.index', _external=True )
+            )
 
         }
 

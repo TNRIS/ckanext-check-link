@@ -12,6 +12,8 @@
 {% block check_link_content %}
 
     <div class="check-link-reports">
+        
+        <strong>{{ "{0} unavailable resource{1} found".format(page.item_count, "s" if page.item_count != 1 else "" ) }}</strong>
         {% for report in page %}
             <div class="check-link-reports--item">
                 {% include "check_link/snippets/report_item.html" %}
@@ -30,39 +32,7 @@
 
 
 {% block check_link_help_text %}
-    {% trans %}
-    <p>
-        Overview of the unavailable resource and application links within the hub.
-    </p>
 
-    <p>
-        Possible states are:
-
-        <dl>
-            {#
-            <dt>Unknown</dt>
-            <dd>Link has not been checked yet</dd>
-
-            <dt>Available</dt>
-            <dd>Link is available</dd>
-            #}
-
-            <dt>Moved</dt>
-            <dd>Link contains a redirect to the different URL</dd>
-
-            <dt>Missing</dt>
-            <dd>Link points to the page that does not exist</dd>
-
-            <dt>Protected</dt>
-            <dd>Link points to the page that requires authentication</dd>
-
-            <dt>Invalid</dt>
-            <dd>Link points to an existing location, but requests are rejected</dd>
-
-            <dt>Error</dt>
-            <dd>Link cannot be checked because it mailformed or points to an unexisting location</dd>
-        </dl>
-    </p>
-    {% endtrans %}
+{% snippet 'check_link/snippets/report_overview.html' %}
 
 {% endblock check_link_help_text %}

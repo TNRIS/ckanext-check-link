@@ -22,7 +22,8 @@ def get_commands():
 
 
 @click.group(short_help="Check link availability")
-def check_link():
+@click.pass_context
+def check_link(ctx):
     pass
 
 
@@ -46,7 +47,7 @@ def check_link():
     "-d", "--delay", default=0, help="Delay between requests", type=click.FloatRange(0)
 )
 @click.option(
-    "-t", "--timeout", default=10, help="Request timeout", type=click.FloatRange(0)
+    "-t", "--timeout", default=60, help="Request timeout", type=click.FloatRange(0)
 )
 @click.argument("ids", nargs=-1)
 def check_packages(
@@ -201,7 +202,7 @@ def _purge_stale_applications( older_than ):
     "-d", "--delay", default=0, help="Delay between requests", type=click.FloatRange(0)
 )
 @click.option(
-    "-t", "--timeout", default=10, help="Request timeout", type=click.FloatRange(0)
+    "-t", "--timeout", default=60, help="Request timeout", type=click.FloatRange(0)
 )
 @click.option(
     "-i", "--ignore-local-resources", is_flag=True, help="Do not check resources hosted locally"
@@ -307,7 +308,7 @@ def _take(seq: Iterable[T], size: int) -> list[T]:
     "-d", "--delay", default=0, help="Delay between requests", type=click.FloatRange(0)
 )
 @click.option(
-    "-t", "--timeout", default=10, help="Request timeout", type=click.FloatRange(0)
+    "-t", "--timeout", default=60, help="Request timeout", type=click.FloatRange(0)
 )
 @click.option(
     "-i", "--ignore-local-resources", is_flag=True, help="Do not check resources hosted locally"
@@ -416,9 +417,17 @@ def purge_reports(orphans_only: bool):
                 action(context.copy(), {"id": report.id})
 
 @check_link.command()
-def mail_report():
+@click.pass_context
+def mail_report(ctx):
     """
     Email check_link report
     """
 
-    tk.get_action("check_link_email_report")({},{})
+    flask_app = ctx.meta["flask_app"]
+    user = tk.get_action("get_site_user")({"ignore_auth": True}, {})
+    context = {"user": user["name"]}
+
+    report = tk.get_action("check_link_email_report")
+
+    with flask_app.test_request_context():
+        report( context.copy(), {} )
