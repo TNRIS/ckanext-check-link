@@ -215,8 +215,8 @@ def email_report(context, data_dict):
 
     subject = '{site_title} | Broken Link Report'.format( site_title = tk.config.get('ckan.site_title') )
     body_prefix =  \
-        "<li>{0} unavailable resource{1} found.</li>".format(count, "s" if count != 1 else "" ) + \
-        "<li><a href='{url}/ckan-admin/broken-links'>This report is also available in the TWDH CKAN Admin</a>.</li>".format( url=tk.config.get('ckan.site_url')   )
+        "<li>{0} unavailable resource{1} found</li>".format(count, "s" if count != 1 else "" ) + \
+        "<li><a href='{url}/ckan-admin/broken-links'>This report is also available in the TWDH CKAN Admin</a></li>".format( url=tk.config.get('ckan.site_url')   )
 
     email_to = tk.config.get('ckanext.check_link.email_to')
 
