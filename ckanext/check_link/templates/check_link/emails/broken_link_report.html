@@ -12,10 +12,19 @@
       set autoescape to false and then add in line breaks.
       Without using this method, the line breaks get escaped with the rest of the html.
   #}
+
   <p style="margin-top: 20px;">
-  {% autoescape false %}
-    {{ message | replace("\n", "<br/>") }}
-  {% endautoescape %}
+    <ul>
+      {% autoescape false %}  
+        {{ prefix }}
+      {% endautoescape %}
+    </ul>
+    <hr/>
+    {% snippet 'check_link/snippets/report_overview.html' %}
+    <hr/>
+    {% autoescape false %}  
+      {{ message | replace("\n", "<br/>") }}
+    {% endautoescape %}
   </p>
 
 {% endblock %}
