@@ -14,7 +14,7 @@ import logging
 
 from ckan.lib import mailer
 import socket
-from jinja2 import escape
+from markupsafe import escape
 from flask import render_template
 
 action, get_actions = Collector("check_link").split()
