@@ -19,8 +19,9 @@ bp = Blueprint("check_link", __name__)
 
 def get_blueprints():
     report_url = tk.config.get(CONFIG_REPORT_URL, DEFAULT_REPORT_URL)
-    if report_url:
-        bp.add_url_rule(report_url, view_func=report)
+    # This is causing an error, does getting rid of it break anything?
+    #if report_url:
+    #    bp.add_url_rule(report_url, view_func=report)
 
     return [bp]
 
