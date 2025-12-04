@@ -37,7 +37,8 @@ class CheckLinkPlugin(plugins.SingletonPlugin):
 
     # IBlueprint
     def get_blueprint(self):
-        return views.get_blueprints()
+        return [views.report_bp]
+        #return views.get_blueprints()
 
     # IClick
     def get_commands(self):
