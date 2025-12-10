@@ -17,7 +17,7 @@ DEFAULT_REPORT_URL = "/check-link/report/global"
 report_bp = Blueprint("check_link", __name__)
 
 def get_blueprints():
-    breakpoint()
+
     report_url = tk.config.get(CONFIG_REPORT_URL, DEFAULT_REPORT_URL)
     if report_url:
         bp.add_url_rule(report_url, view_func=report)
