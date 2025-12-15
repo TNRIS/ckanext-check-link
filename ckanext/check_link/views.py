@@ -14,17 +14,17 @@ DEFAULT_BASE_TEMPLATE = "check_link/base_admin.html"
 DEFAULT_REPORT_URL = "/check-link/report/global"
 
 
-bp = Blueprint("check_link", __name__)
-
+report_bp = Blueprint("check_link", __name__)
 
 def get_blueprints():
+
     report_url = tk.config.get(CONFIG_REPORT_URL, DEFAULT_REPORT_URL)
     if report_url:
         bp.add_url_rule(report_url, view_func=report)
 
     return [bp]
 
-
+@report_bp.route(tk.config.get(CONFIG_REPORT_URL, DEFAULT_REPORT_URL))
 def report():
     if not authz.is_authorized_boolean(
         "check_link_view_report_page", {"user": tk.g.user}, {}
