@@ -8,7 +8,7 @@
 #       - base/main
 
 # check_link-css:
-#   filters: cssrewrite
+#   filters: cssmin
 #   output: ckanext-check_link/%(version)s-check_link.css
 #   contents:
 #     - css/check_link.css
