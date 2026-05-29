@@ -2,13 +2,9 @@
 
 {% block subtitle %}{{ _('Broken Links') }}{% endblock %}
 
-
-
-
 {% block secondary_content %}
     <div class="module module-narrow module-shallow">
         <h2 class="module-heading">
-            <i class="fa fa-info-circle"></i>
             {{ _('Broken Links') }}
         </h2>
         <div class="module-content">
@@ -17,6 +13,7 @@
                 {% endblock check_link_help_text %}
             {% endblock %}
         </div>
+        {% snippet 'reports/snippets/other_reports.html', current_report="check-links" %}
     </div>
 {% endblock %}
 
@@ -24,3 +21,6 @@
     {% block check_link_content %}
     {% endblock check_link_content %}
 {% endblock primary_content_inner %}
+
+{% block content_primary_nav %}
+{% endblock content_primary_nav %}
