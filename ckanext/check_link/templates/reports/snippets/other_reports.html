@@ -1,0 +1,9 @@
+{% ckan_extends %}
+
+{% block sidebar_report_toc %}
+  {% if current_report != "check-links" %}
+    <dt><a href="{{ h.url_for('check_link.report') }}" title="{{ _('Broken Links Report') }}">Broken Links</a>
+    </dt>
+  {% endif %}
+  {{ super() }}
+{% endblock sidebar_report_toc %}
