@@ -20,17 +20,11 @@ def get_blueprints():
 
     report_url = tk.config.get(CONFIG_REPORT_URL, DEFAULT_REPORT_URL)
     if report_url:
-        bp.add_url_rule(report_url, view_func=report)
+        report_bp.add_url_rule(report_url, view_func=report)
 
-    return [bp]
+    return [report_bp]
 
-@report_bp.route(tk.config.get(CONFIG_REPORT_URL, DEFAULT_REPORT_URL))
-def report():
-    if not authz.is_authorized_boolean(
-        "check_link_view_report_page", {"user": tk.g.user}, {}
-    ):
-        return tk.abort(403)
-
+def _get_check_link_report_page():
     try:
         page = max(1, tk.asint(tk.request.args.get("page", 1)))
     except ValueError:
@@ -50,19 +44,42 @@ def report():
     def pager_url(*args: Any, **kwargs: Any):
         return tk.url_for("check_link.report", **kwargs)
 
+    return Page(
+        reports["results"],
+        url=pager_url,
+        page=page,
+        item_count=reports["count"],
+        items_per_page=per_page,
+        presliced_list=True,
+    )
+
+def get_check_link_report_context():
+    if not authz.is_authorized_boolean(
+        "check_link_view_report_page", {"user": tk.g.user}, {}
+    ):
+        return {
+            "check_link_page": None,
+            "check_link_error": "Not authorized to view Check Link report.",
+        }
+
+    return {
+        "check_link_page": _get_check_link_report_page(),
+        "check_link_error": None,
+    }
+
+@report_bp.route(tk.config.get(CONFIG_REPORT_URL, DEFAULT_REPORT_URL))
+def report():
+    if not authz.is_authorized_boolean(
+        "check_link_view_report_page", {"user": tk.g.user}, {}
+    ):
+        return tk.abort(403)
+
     base_template = tk.config.get(CONFIG_BASE_TEMPLATE, DEFAULT_BASE_TEMPLATE)
     return tk.render(
         "check_link/report.html",
         {
             "base_template": base_template,
-            "page": Page(
-                reports["results"],
-                url=pager_url,
-                page=page,
-                item_count=reports["count"],
-                items_per_page=per_page,
-                presliced_list=True,
-            ),
+            "page": _get_check_link_report_page(),
         },
     )
 
