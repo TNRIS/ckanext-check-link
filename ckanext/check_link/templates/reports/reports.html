@@ -1,0 +1,11 @@
+{% ckan_extends %}
+
+{% block report_toc %}
+
+
+  {{ super() }}
+  <dt><a href="{{ h.url_for('check_link.report') }}" title="{{ _('Broken Links Report') }}">Broken Links</a>
+    <dd>{{ _('Lists unavailable or broken resource links detected by the link checker, including affected datasets and resources.') }}</dd>
+  </dt>
+
+{% endblock report_toc %}

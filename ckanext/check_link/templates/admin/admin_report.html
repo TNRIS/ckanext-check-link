@@ -1,0 +1,142 @@
+{% ckan_extends %}
+
+{% block check_link_report %}
+{{ super() }}
+
+<section class="module">
+  <div class="module-content">
+
+    <h2>{{ _("Check Link Report") }}</h2>
+
+    {% if check_link_error %}
+      <p class="text-danger">
+        {{ check_link_error }}
+      </p>
+    {% endif %}
+
+    {% if check_link_page %}
+
+      <p>
+        <strong>
+          {{ "{0} unavailable resource{1} found".format(
+            check_link_page.item_count,
+            "s" if check_link_page.item_count != 1 else ""
+          ) }}
+        </strong>
+      </p>
+      <table class="table table-striped table-bordered table-condensed">
+        <thead>
+            <tr>
+            <th>{{ _("Dataset") }}</th>
+            <th>{{ _("Resource") }}</th>
+            <th>{{ _("URL") }}</th>
+            <th>{{ _("Status") }}</th>
+            <th>{{ _("Error") }}</th>
+            <th>{{ _("Last Available") }}</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for report in check_link_page %}
+
+            {% set package = report.details.package if report.details and report.details.package else {} %}
+            {% set resource = report.details.resource if report.details and report.details.resource else {} %}
+            {% set explanation = report.details.explanation if report.details and report.details.explanation else None %}
+            {% set reason = report.details.reason if report.details and report.details.reason else None %}
+            {% set code = report.details.code if report.details and report.details.code else None %}
+
+            <tr>
+                <td>
+                {% if package.name %}
+                    <a href="{{ h.url_for('dataset.read', id=package.name) }}">
+                    {{ package.title or package.name }}
+                    </a>
+                {% elif package.id %}
+                    <a href="{{ h.url_for('dataset.read', id=package.id) }}">
+                    {{ package.title or package.id }}
+                    </a>
+                {% else %}
+                    <span class="text-muted">{{ _("Unknown dataset") }}</span>
+                {% endif %}
+                </td>
+
+                <td>
+                {% if package.name and resource.id %}
+                    <a href="{{ h.url_for('resource.read', id=package.name, resource_id=resource.id) }}">
+                    {{ resource.name or resource.id }}
+                    </a>
+                {% elif report.resource_id %}
+                    {{ resource.name or report.resource_id }}
+                {% else %}
+                    <span class="text-muted">{{ _("Unknown resource") }}</span>
+                {% endif %}
+
+                {% if resource.format %}
+                    <br>
+                    <small class="text-muted">{{ resource.format }}</small>
+                {% endif %}
+                </td>
+
+                <td style="max-width: 320px; word-break: break-all;">
+                {% if report.url %}
+                    <a href="{{ report.url }}" target="_blank" rel="noopener noreferrer">
+                    {{ report.url }}
+                    </a>
+                {% elif resource.url %}
+                    <a href="{{ resource.url }}" target="_blank" rel="noopener noreferrer">
+                    {{ resource.url }}
+                    </a>
+                {% else %}
+                    <span class="text-muted">{{ _("No URL") }}</span>
+                {% endif %}
+                </td>
+
+                <td>
+                <span class="label label-danger">
+                    {{ report.state or _("Unavailable") }}
+                </span>
+
+                </td>
+
+                <td>
+                {% if explanation %}
+                    <pre style="white-space: pre-wrap; margin: 0;">{{ explanation }}</pre>
+                {% elif reason %}
+                    <pre style="white-space: pre-wrap; margin: 0;">{{ reason }}</pre>
+                {% elif code %}
+                    <pre style="white-space: pre-wrap; margin: 0;">{{ code }}</pre>
+                {% else %}
+                    <span class="text-muted">{{ _("N/A") }}</span>
+                {% endif %}
+                </td>
+
+                <td>
+                {% if report.last_available %}
+                    {{ h.render_datetime(report.last_available) }}
+                {% else %}
+                    <span class="text-muted">{{ _("N/A") }}</span>
+                {% endif %}
+
+                </td>
+            </tr>
+
+            {% else %}
+            <tr>
+                <td colspan="6" class="text-center text-muted">
+                {{ _("At the moment there are no available reports") }}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        </table>
+
+      <div class="check-link-pagination">
+        {{ check_link_page.pager() }}
+      </div>
+
+    {% endif %}
+
+  </div>
+</section>
+
+{% endblock %}

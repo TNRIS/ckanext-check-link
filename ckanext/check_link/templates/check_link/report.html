@@ -13,15 +13,22 @@
 
     <div class="check-link-reports">
         
-        <strong>{{ "{0} unavailable resource{1} found".format(page.item_count, "s" if page.item_count != 1 else "" ) }}</strong>
+        <strong>
+            {{ "{0} broken resource link{1} found".format("No" if page.item_count == 0 else page.item_count, "s" if page.item_count != 1 else "" ) }}
+            {% if page.item_count == 0 %}
+                &mdash; <em>That's a good thing!</em>
+            {% endif %}
+        </strong>
         {% for report in page %}
             <div class="check-link-reports--item">
                 {% include "check_link/snippets/report_item.html" %}
             </div>
         {% else %}
+            {#
             <p class="text-center text-muted">
                 {{ _("At the moment there are no available reports") }}
             </p>
+            #}
         {% endfor %}
     </div>
     {% block check_link_pagination %}

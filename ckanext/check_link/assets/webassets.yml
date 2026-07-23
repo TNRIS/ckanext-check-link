@@ -1,5 +1,5 @@
 # check_link-js:
-#   filter: rjsmin
+#   filters: rjsmin
 #   output: ckanext-check_link/%(version)s-check_link.js
 #   contents:
 #     - js/check_link.js
@@ -8,7 +8,7 @@
 #       - base/main
 
 # check_link-css:
-#   filter: cssrewrite
+#   filters: cssmin
 #   output: ckanext-check_link/%(version)s-check_link.css
 #   contents:
 #     - css/check_link.css
