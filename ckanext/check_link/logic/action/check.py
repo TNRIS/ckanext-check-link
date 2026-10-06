@@ -4,7 +4,9 @@ from itertools import islice
 from typing import Any, Iterable
 
 import ckan.plugins.toolkit as tk
-from check_link import Link, check_all
+from functools import partial
+
+from check_link import AsyncChecker, Link, Option, check_all
 from ckan.lib.search.query import solr_literal
 from ckan.logic import validate
 
@@ -38,7 +40,12 @@ def url_check(context, data_dict):
             else:
                 raise tk.ValidationError({"url": ["Must be a valid URL"]}) from e
 
-    reports = [
+    checker_factory = partial(
+        AsyncChecker,
+        options=Option.default & ~Option.try_head,
+    )
+
+    reports: list[dict[str, Any]] = [
         {
             "url": link.link,
             "state": link.state.name,
@@ -46,7 +53,10 @@ def url_check(context, data_dict):
             "reason": link.reason,
             "explanation": link.details,
         }
-        for link in check_all(links)
+        for link in check_all(
+            links,
+            checker_factory=checker_factory,
+        )
     ]
 
     if data_dict["save"]:
